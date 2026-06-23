@@ -1,13 +1,6 @@
 # zuf2
 
-`zuf2` is a standalone UF2 USB MSC bootloader for Zephyr/NCS targets. It is not
-MCUboot and does not enable MCUboot sysbuild images.
-
-The included board overlay targets the nRF54LM20 DK:
-
-- DK: PCA10184
-- Example build target: `nrf54lm20dk/nrf54lm20a/cpuapp`
-- UF2 family ID: `0x016f65e4`
+`zuf2` is a standalone UF2 USB MSC bootloader for Zephyr/NCS targets.
 
 ## Layout
 
