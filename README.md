@@ -3,10 +3,10 @@
 `zuf2` is a standalone UF2 USB MSC bootloader for Zephyr/NCS targets. It is not
 MCUboot and does not enable MCUboot sysbuild images.
 
-The current board bring-up target is the nRF54LM20 DK:
+The included board overlay targets the nRF54LM20 DK:
 
 - DK: PCA10184
-- Primary target used here: `nrf54lm20dk/nrf54lm20a/cpuapp`
+- Example build target: `nrf54lm20dk/nrf54lm20a/cpuapp`
 - UF2 family ID: `0x016f65e4`
 
 ## Layout
@@ -22,29 +22,42 @@ layout and `CONFIG_USE_DT_CODE_PARTITION=y`.
 
 ## Build
 
-From `/opt/ncs/sdks/ncs-main`:
+From a Zephyr/NCS workspace with this repository as an application:
 
 ```sh
-source activate-nrf.sh
-west build --no-sysbuild -p always -b nrf54lm20dk/nrf54lm20a/cpuapp -d zuf2/build zuf2
+west build --no-sysbuild -p always \
+  -b <board-target> \
+  -d build/zuf2 \
+  path/to/zuf2
 ```
 
-Build the sample chain-loaded app:
+For the included nRF54LM20 DK overlay:
 
 ```sh
-source activate-nrf.sh
-west build --no-sysbuild -p always -b nrf54lm20dk/nrf54lm20a/cpuapp -d zuf2/samples/hello/build zuf2/samples/hello
+west build --no-sysbuild -p always \
+  -b nrf54lm20dk/nrf54lm20a/cpuapp \
+  -d build/zuf2 \
+  path/to/zuf2
+```
+
+Build the sample chain-loaded app the same way:
+
+```sh
+west build --no-sysbuild -p always \
+  -b nrf54lm20dk/nrf54lm20a/cpuapp \
+  -d build/zuf2_hello \
+  path/to/zuf2/samples/hello
 ```
 
 Convert the sample app HEX to UF2:
 
 ```sh
-uv run zuf2/scripts/zuf2conv.py \
-  zuf2/samples/hello/build/zephyr/zephyr.hex \
+uv run path/to/zuf2/scripts/zuf2conv.py \
+  build/zuf2_hello/zephyr/zephyr.hex \
   -f 0x016f65e4 \
   --base 0x40000 \
   --max-size 0x1b4000 \
-  -o zuf2/samples/hello/build/zephyr/zuf2_hello.uf2
+  -o build/zuf2_hello/zephyr/zuf2_hello.uf2
 ```
 
 ## Flash And Use
@@ -52,20 +65,27 @@ uv run zuf2/scripts/zuf2conv.py \
 Flash the bootloader normally:
 
 ```sh
-source activate-nrf.sh
-west flash -d zuf2/build --dev-id 1051851773
+west flash -d build/zuf2
 ```
 
-When no valid app is present, or when `sw0` is held during reset, the board
-enumerates as a USB MSC drive named `ZUF2BOOT`. Copy a UF2 file to the drive.
-After all UF2 blocks are received, `zuf2` resets and boots the application.
+The board enumerates as a USB MSC drive named `ZUF2BOOT` when no valid app is
+present, when `sw0` is held during reset on boards that define that alias, or
+when reset is tapped twice within the double-tap window. Copy a UF2 file to the
+drive. After all UF2 blocks are received, `zuf2` resets and boots the
+application.
 
-## Verified On PCA10184
+By default, `CONFIG_ZUF2_DOUBLE_TAP_RESET=y` and the double-tap window is
+`CONFIG_ZUF2_DOUBLE_TAP_DELAY_MS=500`. On a board with a reset button, tap reset
+twice quickly to stay in UF2 mode. Nordic overlays can enable `gpregret1` for
+the retained double-tap marker; boards without a retained-memory device fall
+back to no-init RAM. If only one reset is seen, `zuf2` waits for the window to
+expire and then boots the application.
 
-On debugger serial `1051851773`, the bootloader enumerated as USB MSC
-`1209:5a02` with volume label `ZUF2BOOT`. Copying the generated
-`zuf2_hello.uf2` programmed the sample app at `0x00040000`; after reset, serial
-logs showed `zuf2_hello: zuf2 chain-loaded hello app`.
+The second reset must happen after the bootloader has started, so use a quick
+double-click gesture with a short beat between presses rather than holding reset
+or pressing both taps as fast as possible.
+
+To program an app, copy the generated UF2 file to the mounted `ZUF2BOOT` drive.
 
 ## Porting
 

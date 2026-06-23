@@ -9,6 +9,10 @@
 	};
 };
 
+&gpregret1 {
+	status = "okay";
+};
+
 &cpuapp_rram {
 	partitions {
 		ranges;

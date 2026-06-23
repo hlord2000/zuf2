@@ -22,6 +22,34 @@ config ZUF2_BOOT_BUTTON
 	  If the board has a devicetree sw0 alias, holding it at reset keeps
 	  the bootloader in UF2 mode.
 
+config ZUF2_DOUBLE_TAP_RESET
+	bool "Double-tap reset bootloader entry"
+	default y
+	select RETAINED_MEM if DT_HAS_NORDIC_NRF_GPREGRET_ENABLED
+	help
+	  Enter UF2 mode when the board is reset twice within
+	  ZUF2_DOUBLE_TAP_DELAY_MS while a valid application is present.
+	  This matches the common Adafruit-style double-reset bootloader
+	  gesture.
+
+config ZUF2_DOUBLE_TAP_DELAY_MS
+	int "Double-tap reset window in milliseconds"
+	default 500
+	range 1 10000
+	help
+	  Time after the first reset that zuf2 waits for a second reset before
+	  booting the application. This is used when ZUF2_DOUBLE_TAP_RESET is
+	  enabled.
+
+config ZUF2_DOUBLE_TAP_MAGIC
+	hex "Double-tap reset marker byte"
+	default 0x5a
+	range 0x01 0xff
+	help
+	  Marker value stored in retained state during the double-tap reset
+	  window. Change this if another firmware component uses the same
+	  retained marker value.
+
 config ZUF2_REQUIRE_FAMILY_ID
 	bool "Require UF2 family ID"
 	default y
