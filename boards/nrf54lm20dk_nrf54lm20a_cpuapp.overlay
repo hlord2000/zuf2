@@ -1,0 +1,37 @@
+/delete-node/ &boot_partition;
+/delete-node/ &slot0_partition;
+/delete-node/ &slot1_partition;
+/delete-node/ &storage_partition;
+
+/ {
+	chosen {
+		zephyr,code-partition = &boot_partition;
+	};
+};
+
+&cpuapp_rram {
+	partitions {
+		ranges;
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		boot_partition: partition@0 {
+			compatible = "zephyr,mapped-partition";
+			label = "zuf2";
+			reg = <0x00000000 DT_SIZE_K(256)>;
+			read-only;
+		};
+
+		slot0_partition: partition@40000 {
+			compatible = "zephyr,mapped-partition";
+			label = "app";
+			reg = <0x00040000 DT_SIZE_K(1744)>;
+		};
+
+		storage_partition: partition@1f4000 {
+			compatible = "zephyr,mapped-partition";
+			label = "storage";
+			reg = <0x001f4000 DT_SIZE_K(36)>;
+		};
+	};
+};

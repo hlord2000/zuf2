@@ -1,0 +1,119 @@
+menuconfig ZUF2
+	bool "zuf2 UF2 bootloader"
+	default y
+	help
+	  Build a small UF2-over-USB-MSC bootloader that writes a
+	  devicetree-defined application partition and chain-loads it directly.
+
+if ZUF2
+
+config ZUF2_ALWAYS_ENTER
+	bool "Always stay in UF2 mode"
+	default n
+	help
+	  Stay in the bootloader even when a valid application is present.
+	  This is useful during bring-up.
+
+config ZUF2_BOOT_BUTTON
+	bool "Bootloader entry button"
+	default y
+	depends on GPIO
+	help
+	  If the board has a devicetree sw0 alias, holding it at reset keeps
+	  the bootloader in UF2 mode.
+
+config ZUF2_REQUIRE_FAMILY_ID
+	bool "Require UF2 family ID"
+	default y
+	help
+	  Only accept UF2 blocks that set the family-ID flag and match
+	  ZUF2_FAMILY_ID.
+
+config ZUF2_FAMILY_ID
+	hex "UF2 family ID"
+	default 0x016f65e4
+	help
+	  UF2 family ID accepted by this bootloader. The default was randomly
+	  generated for the nRF54LM20 bring-up target because the upstream UF2
+	  family list does not currently define an nRF54 family.
+
+config ZUF2_MAX_EXTRA_UF2_BLOCKS
+	int "Extra UF2 tracking blocks in blocks"
+	default 2048
+	help
+	  Number of non-application UF2 blocks that can be tracked for
+	  completion. Source-embedded UF2 files may contain blocks beyond the
+	  application partition payload.
+
+config ZUF2_RESET_DELAY_MS
+	int "Reset delay after UF2 write in milliseconds"
+	default 500
+	help
+	  Delay after all UF2 blocks have been received before rebooting into
+	  the newly written application.
+
+config ZUF2_DISK_SECTOR_COUNT
+	int "Virtual UF2 disk size in sectors"
+	default 8192
+	help
+	  Number of 512-byte sectors reported by the virtual FAT16 disk.
+	  Increase this if the generated CURRENT.UF2 file does not fit.
+
+config ZUF2_USB_VID
+	hex "USB vendor ID"
+	default 0x1209
+	help
+	  USB vendor ID used by the bootloader MSC device. Replace this for any
+	  production device.
+
+config ZUF2_USB_PID
+	hex "USB product ID"
+	default 0x5a02
+	help
+	  USB product ID used by the bootloader MSC device. Replace this for any
+	  production device.
+
+config ZUF2_USB_MANUFACTURER
+	string "USB manufacturer string"
+	default "zuf2"
+	help
+	  USB manufacturer string descriptor.
+
+config ZUF2_USB_PRODUCT
+	string "USB product string"
+	default "zuf2 UF2 Bootloader"
+	help
+	  USB product string descriptor.
+
+config ZUF2_VOLUME_LABEL
+	string "UF2 volume label"
+	default "ZUF2BOOT"
+	help
+	  FAT volume label. The value is padded or truncated to the FAT 11-byte
+	  volume label field.
+
+config ZUF2_MODEL
+	string "UF2 model string"
+	default "nRF54LM20 DK"
+	help
+	  Human-readable model line exposed in INFO_UF2.TXT.
+
+config ZUF2_BOARD_ID
+	string "UF2 board ID string"
+	default "nRF54LM20-DK-zuf2-v0"
+	help
+	  Machine-readable Board-ID exposed in INFO_UF2.TXT.
+
+config ZUF2_INDEX_URL
+	string "UF2 index URL"
+	default "https://github.com/microsoft/uf2"
+	help
+	  URL used by INDEX.HTM on the virtual UF2 disk.
+
+module = ZUF2
+module-str = zuf2 bootloader
+source "$(ZEPHYR_BASE)/subsys/logging/Kconfig.template.log_config"
+
+endif
+
+source "Kconfig.zephyr"
